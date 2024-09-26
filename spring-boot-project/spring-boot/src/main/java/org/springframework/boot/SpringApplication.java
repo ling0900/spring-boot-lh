@@ -296,26 +296,43 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+		// 记录开始时间
 		long startTime = System.nanoTime();
+		// 用于引导上下文的初始化器
 		DefaultBootstrapContext bootstrapContext = createBootstrapContext();
+		// 一个可配置和可管理的应用程序上下文接口，它提供了丰富的功能和方法，用于定制和管理Spring应用程序的上下文。
 		ConfigurableApplicationContext context = null;
 		configureHeadlessProperty();
+		// 创建监听器，这些监听器可以用于记录日志、执行初始化操作、处理异常等。
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+		// 预备启动监听器，只用到了启动上下文
 		listeners.starting(bootstrapContext, this.mainApplicationClass);
+
+		// ═══════════════════════════════════════════════════════
+		// 准备了两个上下文，一个是引导上下文，一个是应用上下文。
+		// 然后创建了一系列的监听器，并启动。
+		// ═══════════════════════════════════════════════════════
+
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 			Banner printedBanner = printBanner(environment);
+			// 应用上下文的创建
 			context = createApplicationContext();
 			context.setApplicationStartup(this.applicationStartup);
+			// 做一些准备工作
 			prepareContext(bootstrapContext, context, environment, listeners, applicationArguments, printedBanner);
+			// 调用Spring框架的refresh()
 			refreshContext(context);
+			// 默认空方法
 			afterRefresh(context, applicationArguments);
 			Duration timeTakenToStartup = Duration.ofNanos(System.nanoTime() - startTime);
 			if (this.logStartupInfo) {
 				new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), timeTakenToStartup);
 			}
+			// 启动监听器，把应用上下文塞进去
 			listeners.started(context, timeTakenToStartup);
+			//
 			callRunners(context, applicationArguments);
 		}
 		catch (Throwable ex) {
@@ -731,6 +748,7 @@ public class SpringApplication {
 	 * @param applicationContext the application context to refresh
 	 */
 	protected void refresh(ConfigurableApplicationContext applicationContext) {
+		// AbstractApplicationContext,这里面就是Spring的代码了。
 		applicationContext.refresh();
 	}
 
@@ -1285,6 +1303,8 @@ public class SpringApplication {
 	}
 
 	/**
+	 * ConfigurableApplicationContext 在Spring源码中也是有这个字眼的。
+	 *
 	 * Static helper that can be used to run a {@link SpringApplication} from the
 	 * specified source using default settings.
 	 * @param primarySource the primary source to load
@@ -1303,6 +1323,7 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?>[] primarySources, String[] args) {
+		// 先new，然后run
 		return new SpringApplication(primarySources).run(args);
 	}
 
